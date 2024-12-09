@@ -1,6 +1,7 @@
 [requires]
-grpc/1.67.1
+abseil/20240116.2
 protobuf/5.27.0
+grpc/1.67.1
 
 [layout]
 cmake_layout
