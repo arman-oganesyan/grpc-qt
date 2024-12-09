@@ -1,4 +1,7 @@
 build/
 
+# CMake
+CMakeUserPresets.json
+
 # MacOS
 .DS_Store

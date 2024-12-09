@@ -1,13 +1,13 @@
-#include <iostream>
-#include <google/protobuf/message.h>
+#include <QtWidgets/QApplication>
 
-int main()
+#include "server_window.h"
+
+int main(int argc, char **argv)
 {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+  QApplication app{argc, argv};
 
-  std::cout << "Protobuf version: "
-            << PROTOBUF_VERSION
-            << std::endl;
+  ServerWindow serverWindow{};
+  serverWindow.show();
 
-  return 0;
+  return app.exec();
 }
