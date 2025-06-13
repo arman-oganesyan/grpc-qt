@@ -9,6 +9,7 @@ target_link_libraries(proto-objects PUBLIC abseil::abseil protobuf::protobuf gRP
 
 set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}")
+file(MAKE_DIRECTORY "${PROTO_BINARY_DIR}")
 
 protobuf_generate(
     TARGET proto-objects
