@@ -1,10 +1,6 @@
 #pragma once
 
-#include <QtCore/QPointer>
 #include <QtWidgets/QMainWindow>
-
-#include <memory>
-#include <vector>
 
 // fwd declarations
 class QTableView;
@@ -16,15 +12,14 @@ class ClientWindow : public QMainWindow {
 Q_OBJECT
 public:
     explicit ClientWindow(QWidget* parent = nullptr);
-    ~ClientWindow();
 
 private Q_SLOTS:
-    void OnReadyRead();
+    void OnReadyRead() const;
 
 private:
-    std::vector<std::unique_ptr<QUdpSocket>> m_udpSockets;
+    QUdpSocket* m_udpSocket;
 
-    QPointer<ConnectionsModel> m_model;
-    QPointer<QTableView> m_view;
-    QPointer<ButtonDelegate> m_buttonDelegate;
+    ConnectionsModel* m_model;
+    QTableView* m_view;
+    ButtonDelegate* m_buttonDelegate;
 };

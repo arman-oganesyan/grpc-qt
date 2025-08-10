@@ -1,8 +1,8 @@
 #include "client_window.h"
 
 #include <QtNetwork/QNetworkInterface>
-#include <QtNetwork/QUdpSocket>
 #include <QtNetwork/QNetworkDatagram>
+#include <QtNetwork/QUdpSocket>
 #include <QtWidgets/QTableView>
 
 #include "connections_model.h"
@@ -10,10 +10,11 @@
 
 ClientWindow::ClientWindow(QWidget* parent)
     : QMainWindow(parent)
+    , m_udpSocket(new QUdpSocket(this))
 {
     m_model = new ConnectionsModel{ this };
     m_buttonDelegate = new ButtonDelegate{ this };
-    connect(m_buttonDelegate.get(), &ButtonDelegate::clicked, m_model.get(), &ConnectionsModel::connectToServer);
+    connect(m_buttonDelegate, &ButtonDelegate::clicked, m_model, &ConnectionsModel::connectToServer);
     m_view = new QTableView{ this };
     m_view->setModel(m_model);
     m_view->setItemDelegateForColumn(3, m_buttonDelegate);
@@ -25,35 +26,15 @@ ClientWindow::ClientWindow(QWidget* parent)
 
     setCentralWidget(m_view);
 
-    for (const auto& interface : QNetworkInterface::allInterfaces())
-    {
-        if (!(interface.flags() & QNetworkInterface::IsRunning))
-            continue;
-
-        for (const auto& entry : interface.addressEntries())
-        {
-            if (!entry.broadcast().isNull()) {
-                auto udpSocket = std::make_unique<QUdpSocket>();
-                connect(udpSocket.get(), &QUdpSocket::readyRead, this, &ClientWindow::OnReadyRead);
-                if (udpSocket->bind(entry.ip(), 10001))
-                {
-                    m_udpSockets.push_back(std::move(udpSocket));
-                }
-            }
-        }
-    }
+    connect(m_udpSocket, &QUdpSocket::readyRead, this, &ClientWindow::OnReadyRead);
+    m_udpSocket->bind(QHostAddress::AnyIPv4, 10001, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
     resize(480, 320);
 }
 
-ClientWindow::~ClientWindow() {
-}
-
-void ClientWindow::OnReadyRead() {
-    if (auto socket = qobject_cast<QUdpSocket*>(sender()); socket) {
-        auto datagram = socket->receiveDatagram();
-        if (auto port = datagram.data().toInt(); port > 0) {
-            m_model->addConnectionItem(datagram.senderAddress().toString(), datagram.data().toInt());
-        }
+void ClientWindow::OnReadyRead() const {
+    auto datagram = m_udpSocket->receiveDatagram();
+    if (auto port = datagram.data().toInt(); port > 0) {
+        m_model->addConnectionItem(datagram.senderAddress().toString(), datagram.data().toInt());
     }
 }

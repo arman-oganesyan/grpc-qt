@@ -56,11 +56,17 @@ void ServerWindow::findInterfaces() {
     m_textEditLog->append("Find interfaces:");
     for (const auto& interface : QNetworkInterface::allInterfaces())
     {
-        if (!(interface.flags() & QNetworkInterface::IsRunning))
+        if (!(interface.flags() & QNetworkInterface::IsRunning) ||
+            !(interface.flags() & QNetworkInterface::CanBroadcast) ||
+            (interface.flags() & QNetworkInterface::IsLoopBack))
             continue;
 
         for (const auto& entry : interface.addressEntries())
         {
+            if (entry.ip().protocol() != QAbstractSocket::IPv4Protocol) {
+                continue;
+            }
+
             if (!entry.broadcast().isNull()) {
                 m_addresses.append(entry);
                 m_textEditLog->append(entry.ip().toString());
@@ -72,7 +78,7 @@ void ServerWindow::findInterfaces() {
 
 void ServerWindow::sendBroadcastMessage() {
     m_textEditLog->append("Broadcast");
-    for (const auto& entry : qAsConst(m_addresses)) {
+    for (const auto& entry : std::as_const(m_addresses)) {
         if (auto broadcast = entry.broadcast(); !broadcast.isNull()) {
             m_udpSocket.writeDatagram(m_broadcastDatagram, broadcast, kBroadcastPort);
         }

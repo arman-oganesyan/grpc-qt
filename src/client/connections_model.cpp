@@ -11,9 +11,6 @@ ConnectionsModel::ConnectionsModel(QObject* parent)
     : QAbstractTableModel(parent)
 {}
 
-ConnectionsModel::~ConnectionsModel()
-{}
-
 void ConnectionsModel::addConnectionItem(QString host, int port)
 {
     auto find_result = std::ranges::find_if(m_items, [host, port](const auto& entry) { 
@@ -22,18 +19,16 @@ void ConnectionsModel::addConnectionItem(QString host, int port)
 
     if (find_result == m_items.cend()) {
         emit beginInsertRows({}, m_items.size(), m_items.size() + 1);
-        auto newItem = std::make_unique<ConnectionItem>(host, port);
+        auto newItem = new ConnectionItem(host, port, this);
 
-        connect(newItem.get(), &ConnectionItem::updated, this, [this]() {
-            auto connectionItem = std::ranges::find_if(m_items, [connectionItem = sender()](const auto& entry) { return entry.get() == connectionItem; });
-
-            if (connectionItem != m_items.end()) {
+        connect(newItem, &ConnectionItem::updated, this, [this]() {
+            if (auto connectionItem = std::ranges::find(m_items, sender()); connectionItem != m_items.end()) {
                 auto row = std::distance(m_items.begin(), connectionItem);
                 emit dataChanged(index(row, 0), index(row, +ConnectionsModelColumns::ColumnCount - 1));
             }
         });
 
-        m_items.push_back(std::move(newItem));
+        m_items.push_back(newItem);
         emit endInsertRows();
     }
 }

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-project(GrpcQt CXX C)
+project(GrpcQt CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -42,8 +43,8 @@ endif()
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(ServerExe ${GUI_TYPE} ${SERVER_SOURCES})
-target_link_libraries(ServerExe proto-objects Qt6::Core Qt6::Network Qt6::Widgets)
+target_link_libraries(ServerExe PRIVATE proto-objects Qt6::Core Qt6::Network Qt6::Widgets)
 
 add_executable(ClientExe ${GUI_TYPE} ${CLIENT_SOURCES})
 target_include_directories(ClientExe PRIVATE src/client)
-target_link_libraries(ClientExe proto-objects Qt6::Core Qt6::Network Qt6::Widgets)
+target_link_libraries(ClientExe PRIVATE proto-objects Qt6::Core Qt6::Network Qt6::Widgets)
